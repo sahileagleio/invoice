@@ -26,6 +26,7 @@ export async function onboardUser(prevState: any, formData: FormData) {
     data: {
       firstName: submission.value.firstName,
       lastName: submission.value.lastName,
+      phone: submission.value.phone,
       address: submission.value.address,
     },
   });

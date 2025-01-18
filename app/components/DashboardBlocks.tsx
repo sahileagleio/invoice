@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
+import { Activity, CreditCard, DollarSign, IndianRupee, Users } from "lucide-react";
 import prisma from "../utils/db";
 import { requireUser } from "../utils/hooks";
 import { formatCurrency } from "../utils/formatCurrency";
@@ -53,13 +53,13 @@ export async function DashboardBlocks() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-          <DollarSign className="size-4 text-muted-foreground" />
+          <IndianRupee className="size-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <h2 className="text-2xl font-bold">
             {formatCurrency({
               amount: data.reduce((acc, invoice) => acc + invoice.total, 0),
-              currency: "USD",
+              currency: "INR",
             })}
           </h2>
           <p className="text-xs text-muted-foreground">Based on total volume</p>

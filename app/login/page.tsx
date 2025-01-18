@@ -14,7 +14,6 @@ import { redirect } from "next/navigation";
 
 export default async function Login() {
   const session = await auth();
-
   if (session?.user) {
     redirect("/dashboard");
   }
@@ -34,8 +33,8 @@ export default async function Login() {
           <CardContent>
             <form
               action={async (formData) => {
-                "use server";
-                await signIn("nodemailer", formData);
+                "use server"
+                await signIn("credentials", formData)
               }}
               className="flex flex-col gap-y-4"
             >
@@ -46,6 +45,14 @@ export default async function Login() {
                   type="email"
                   required
                   placeholder="hello@hello.com"
+                />
+              </div>
+              <div className="flex flex-col gap-y-2">
+                <Label>Password</Label>
+                <Input
+                  name="password"
+                  type="password"
+                  required
                 />
               </div>
               <SubmitButton text="Login" />

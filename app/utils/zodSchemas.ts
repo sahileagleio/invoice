@@ -3,12 +3,25 @@ import { z } from "zod";
 export const onboardingSchema = z.object({
   firstName: z.string().min(2, "First name is required"),
   lastName: z.string().min(2, "Last name is required"),
+  phone: z.string().min(10, "phone number is required"),
   address: z.string().min(2, "Address is required"),
+});
+
+export const signInSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .min(1, "Email is required")
+    .email("Invalid email"),
+  password: z
+    .string({ required_error: "Password is required" })
+    .min(1, "Password is required")
+    .min(8, "Password must be more than 8 characters")
+    .max(32, "Password must be less than 32 characters"),
 });
 
 export const invoiceSchema = z.object({
   invoiceName: z.string().min(1, "Invoice Name is required"),
-  total: z.number().min(1, "1$ is minimum"),
+  total: z.number().min(1, "1₹ is minimum"),
 
   status: z.enum(["PAID", "PENDING"]).default("PENDING"),
 

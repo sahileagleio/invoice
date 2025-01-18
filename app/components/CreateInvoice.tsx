@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { invoiceSchema } from "../utils/zodSchemas";
 import { formatCurrency } from "../utils/formatCurrency";
+import Link from "next/link";
 
 interface iAppProps {
   firstName: string;
@@ -59,7 +60,7 @@ export function CreateInvoice({
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [rate, setRate] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("INR");
 
   const calcualteTotal = (Number(quantity) || 0) * (Number(rate) || 0);
 
@@ -115,19 +116,18 @@ export function CreateInvoice({
             <div>
               <Label>Currency</Label>
               <Select
-                defaultValue="USD"
+                defaultValue="INR"
                 name={fields.currency.name}
                 key={fields.currency.key}
                 onValueChange={(value) => setCurrency(value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select Currency" />
+                  <SelectValue placeholder="Select Currency"/>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">
-                    United States Dollar -- USD
+                  <SelectItem value="INR">
+                    Indian rupess -- INR
                   </SelectItem>
-                  <SelectItem value="EUR">Euro -- EUR</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-red-500 text-sm">{fields.currency.errors}</p>
@@ -347,8 +347,13 @@ export function CreateInvoice({
           </div>
 
           <div className="flex items-center justify-end mt-6">
+            <div className="pr-5">
+            <Link href="/dashboard/invoices" className={buttonVariants({variant:"secondary"})}>
+            Back
+            </Link>
+            </div>
             <div>
-              <SubmitButton text="Send Invoice to Client" />
+              <SubmitButton text="Send Invoice" />
             </div>
           </div>
         </form>

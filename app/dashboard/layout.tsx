@@ -32,8 +32,8 @@ async function getUser(userId: string) {
     },
   });
 
-  if (!data?.firstName || !data.lastName || !data.address) {
-    redirect("/onboarding");
+  if (!data?.firstName || !data?.lastName || !data?.address) {
+    redirect("/profile");
   }
 }
 
@@ -99,6 +99,9 @@ export default async function DashboardLayout({
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/invoices">Invoices</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>

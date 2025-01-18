@@ -1,6 +1,7 @@
+
 import prisma from "@/app/utils/db";
 import { NextResponse } from "next/server";
-import jsPDF from "jspdf";
+import puppeteer from "puppeteer";
 import { formatCurrency } from "@/app/utils/formatCurrency";
 
 export async function GET(
@@ -40,100 +41,90 @@ export async function GET(
   if (!data) {
     return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
   }
-
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
-
-  // set font
-  pdf.setFont("helvetica");
-
-  //set header
-  pdf.setFontSize(24);
-  pdf.text(data.invoiceName, 20, 20);
-
-  // From Section
-  pdf.setFontSize(12);
-  pdf.text("From", 20, 40);
-  pdf.setFontSize(10);
-  pdf.text([data.fromName, data.fromEmail, data.fromAddress], 20, 45);
-
-  // Client Section
-  pdf.setFontSize(12);
-  pdf.text("Bill to", 20, 70);
-  pdf.setFontSize(10);
-  pdf.text([data.clientName, data.clientEmail, data.clientAddress], 20, 75);
-
-  // Invoice details
-  pdf.setFontSize(10);
-  pdf.text(`Invoice Number: #${data.invoiceNumber}`, 120, 40);
-  pdf.text(
-    `Date: ${new Intl.DateTimeFormat("en-US", {
-      dateStyle: "long",
-    }).format(data.date)}`,
-    120,
-    45
-  );
-  pdf.text(`Due Date: Net ${data.dueDate}`, 120, 50);
-
-  // Item table header
-  pdf.setFontSize(10);
-  pdf.setFont("helvetica", "bold");
-  pdf.text("Description", 20, 100);
-  pdf.text("Quantity", 100, 100);
-  pdf.text("Rate", 130, 100);
-  pdf.text("Total", 160, 100);
-
-  // draw header line
-  pdf.line(20, 102, 190, 102);
-
-  // Item Details
-  pdf.setFont("helvetica", "normal");
-  pdf.text(data.invoiceItemDescription, 20, 110);
-  pdf.text(data.invoiceItemQuantity.toString(), 100, 110);
-  pdf.text(
-    formatCurrency({
-      amount: data.invoiceItemRate,
-      currency: data.currency as any,
-    }),
-    130,
-    110
-  );
-  pdf.text(
-    formatCurrency({ amount: data.total, currency: data.currency as any }),
-    160,
-    110
-  );
-
-  // Total Section
-  pdf.line(20, 115, 190, 115);
-  pdf.setFont("helvetica", "bold");
-  pdf.text(`Total (${data.currency})`, 130, 130);
-  pdf.text(
-    formatCurrency({ amount: data.total, currency: data.currency as any }),
-    160,
-    130
-  );
-
-  //Additional Note
-  if (data.note) {
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-    pdf.text("Note:", 20, 150);
-    pdf.text(data.note, 20, 155);
-  }
-
-  // generate pdf as buffer
-  const pdfBuffer = Buffer.from(pdf.output("arraybuffer"));
+  const html = await renderInvoiceHTML(data);
 
   //return pdf as download
+  const pdfBuffer = await generatePDF(html);
 
   return new NextResponse(pdfBuffer, {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": "inline",
+      "Content-Disposition": `attachment; filename=invoice-${data.clientName}.pdf`,
     },
   });
+}
+
+export async function generatePDF(
+  pages: string,
+  pageoptions?: any,
+) {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  const width = 2480; // 210 mm at 300 DPI
+  const height = 3508; // 297 mm at 300 DPI
+  await page.setViewport({ width, height });
+  await page.setContent(pages, { waitUntil: "networkidle0" });
+  const pagees = await page.pdf(
+    pageoptions ? pageoptions : getContentWithoutFooterOptionPDF()
+  );
+  await browser.close();
+  return pagees;
+}
+
+export function getContentWithoutFooterOptionPDF() {
+  return {
+    format: "A4",
+    scale: 1,
+    printBackground: true,
+    displayHeaderFooter: false,
+    margin: { top: "32px", left: "32px", right: "32px", bottom: "56px" },
+  };
+}
+
+
+async function renderInvoiceHTML(data: any) {
+  return `
+  <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; }
+          h1 { font-size: 24px; }
+          p { font-size: 14px; }
+          .invoice-details { margin-bottom: 20px; }
+          .invoice-items { width: 100%; border-collapse: collapse; }
+          .invoice-items th, .invoice-items td { border: 1px solid #000; padding: 8px; }
+        </style>
+      </head>
+      <body>
+        <h1>${data.invoiceName}</h1>
+        <div class="invoice-details">
+          <p>Invoice Number: #${data.invoiceNumber}</p>
+          <p>Date: ${new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(data.date)}</p>
+          <p>Due Date: ${new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(data.dueDate)}</p>
+          <p>From: ${data.fromName}, ${data.fromEmail}, ${data.fromAddress}</p>
+          <p>Bill To: ${data.clientName}, ${data.clientEmail}, ${data.clientAddress}</p>
+        </div>
+        <table class="invoice-items">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Quantity</th>
+              <th>Rate</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>${data.invoiceItemDescription}</td>
+              <td>${data.invoiceItemQuantity}</td>
+              <td>${formatCurrency({ amount: data.invoiceItemRate, currency: data.currency })}</td>
+              <td>${formatCurrency({ amount: data.total, currency: data.currency })}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>Note: ${data.note || 'N/A'}</p>
+      </body>
+    </html>
+    `
+  
 }

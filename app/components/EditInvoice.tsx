@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ import { invoiceSchema } from "../utils/zodSchemas";
 import { createInvoice, editInvoice } from "../actions";
 import { formatCurrency } from "../utils/formatCurrency";
 import { Prisma } from "@prisma/client";
+import Link from "next/link";
 
 interface iAppProps {
   data: Prisma.InvoiceGetPayload<{}>;
@@ -107,7 +108,7 @@ export function EditInvoice({ data }: iAppProps) {
             <div>
               <Label>Currency</Label>
               <Select
-                defaultValue="USD"
+                defaultValue="INR"
                 name={fields.currency.name}
                 key={fields.currency.key}
                 onValueChange={(value) => setCurrency(value)}
@@ -116,10 +117,9 @@ export function EditInvoice({ data }: iAppProps) {
                   <SelectValue placeholder="Select Currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="USD">
-                    United States Dollar -- USD
+                  <SelectItem value="INR">
+                  Indian rupess -- INR
                   </SelectItem>
-                  <SelectItem value="EUR">Euro -- EUR</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-red-500 text-sm">{fields.currency.errors}</p>
@@ -339,6 +339,11 @@ export function EditInvoice({ data }: iAppProps) {
           </div>
 
           <div className="flex items-center justify-end mt-6">
+          <div className="pr-5">
+            <Link href="/dashboard/invoices" className={buttonVariants({variant:"secondary"})}>
+            Back
+            </Link>
+            </div>
             <div>
               <SubmitButton text="Update Invoice" />
             </div>
